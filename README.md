@@ -218,7 +218,7 @@ table(allframe$Author)
     ##     subsonic       Wall62         Yui5 
     ##            1            1            1
 
-共爬出120篇文章標題。 adam7148, checktime,bigDwinsch 文章數最多,每人各發表3篇文章。
+共爬出120篇文章標題。 Rambo發表文章數最多，為18篇文章。
 
 ``` r
 table(allframe$Author)
