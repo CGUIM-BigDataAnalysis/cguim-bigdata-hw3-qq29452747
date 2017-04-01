@@ -1,227 +1,275 @@
 長庚大學 大數據分析方法 作業三
 ================
 
-作業說明 （繳交時請直接刪除這個章節）
--------------------------------------
-
-作業目的：練習初級爬蟲，並將爬蟲結果整理成資料框data.frame
-
-依下列指示，完成網站內文分析：
-
--   爬取指定網站內容
-    -   學號結尾 0,4,8:[Ptt Tech\_Job 版](https://www.ptt.cc/bbs/Tech_Job/index.html)
-    -   學號結尾 1,5,9:[Ptt NBA 版](https://www.ptt.cc/bbs/NBA/index.html)
-    -   學號結尾 2,6:[Ptt LoL 版](https://www.ptt.cc/bbs/LoL/index.html)
-    -   學號結尾 3,7:[Ptt movie 版](https://www.ptt.cc/bbs/movie/index.html)
--   試著爬出**至少100篇**文章（`30pt`）的**標題**、**推文數**與**作者ID**（各`10pt`）
-    -   資料框欄位名稱：
-        -   **標題**：Title
-        -   **推文數**：PushNum
-        -   **作者ID**：Author
-    -   一頁只有20篇，該怎麼辦？
-        -   提示：使用for + rbind()將分批爬取出的資料結合
-        -   範例：dataframeAll&lt;-rbind(dataframe1,dataframe2)
-        -   參考：[6.6 資料組合](http://yijutseng.github.io/DataScienceRBook/manipulation.html#section-6.6)
--   將爬取出的資料輸出至Markdown報告中（`10pt`）
-    -   使用knitr::kable(資料框物件)整理輸出
--   用文字搭配程式碼解釋爬蟲結果
-    -   共爬出幾篇文章標題？（程式碼與文字解釋各`5pt`）
-        -   dim(), nrow(), str()皆可
-    -   哪個作者文章數最多？（程式碼與文字解釋各`5pt`）
-        -   table()
-    -   其他爬蟲結果解釋（`10pt`）
-        -   試著找出有趣的現象，不一定要用程式碼搭配解釋，也可只用文字
-
 網站資料爬取
 ------------
 
 ``` r
-#這是R Code Chunk
+library(xml2)
+```
+
+    ## Warning: package 'xml2' was built under R version 3.3.3
+
+``` r
 library(rvest) ##第一次使用要先安裝 install.packages("rvest")
 ```
 
-    ## Loading required package: xml2
+    ## Warning: package 'rvest' was built under R version 3.3.3
 
 ``` r
 ##read_html
 ##html_nodes
 ##html_text
+allframe = data.frame(Title=character(),
+                      Author=character(),
+                      PushNum=character())
+for(i in 4637:4642){
+PTTURL<-paste0("https://www.ptt.cc/bbs/NBA/index",i,".html") 
+PTTContent <- read_html(PTTURL)
+post_title <- PTTContent %>% html_nodes(".title") %>% html_text() 
+post_title <- gsub("\n",replacement="",post_title)
+post_title <- gsub("\t",replacement="",post_title)
+post_author<- PTTContent %>% html_nodes(".author") %>% html_text()
+post_pushnum <- PTTContent %>% html_nodes(".nrec") %>% html_text()
+PTTframe <- data.frame(Title = post_title, Author = post_author, PushNum = post_pushnum)
+allframe <- rbind(allframe,PTTframe)
+}
 ```
 
 爬蟲結果呈現
 ------------
 
 ``` r
-#這是R Code Chunk
-knitr::kable(iris) ##請將iris取代為上個步驟中產生的爬蟲資料資料框
+knitr::kable(allframe) ##請將iris取代為上個步驟中產生的爬蟲資料資料框
 ```
 
-|  Sepal.Length|  Sepal.Width|  Petal.Length|  Petal.Width| Species    |
-|-------------:|------------:|-------------:|------------:|:-----------|
-|           5.1|          3.5|           1.4|          0.2| setosa     |
-|           4.9|          3.0|           1.4|          0.2| setosa     |
-|           4.7|          3.2|           1.3|          0.2| setosa     |
-|           4.6|          3.1|           1.5|          0.2| setosa     |
-|           5.0|          3.6|           1.4|          0.2| setosa     |
-|           5.4|          3.9|           1.7|          0.4| setosa     |
-|           4.6|          3.4|           1.4|          0.3| setosa     |
-|           5.0|          3.4|           1.5|          0.2| setosa     |
-|           4.4|          2.9|           1.4|          0.2| setosa     |
-|           4.9|          3.1|           1.5|          0.1| setosa     |
-|           5.4|          3.7|           1.5|          0.2| setosa     |
-|           4.8|          3.4|           1.6|          0.2| setosa     |
-|           4.8|          3.0|           1.4|          0.1| setosa     |
-|           4.3|          3.0|           1.1|          0.1| setosa     |
-|           5.8|          4.0|           1.2|          0.2| setosa     |
-|           5.7|          4.4|           1.5|          0.4| setosa     |
-|           5.4|          3.9|           1.3|          0.4| setosa     |
-|           5.1|          3.5|           1.4|          0.3| setosa     |
-|           5.7|          3.8|           1.7|          0.3| setosa     |
-|           5.1|          3.8|           1.5|          0.3| setosa     |
-|           5.4|          3.4|           1.7|          0.2| setosa     |
-|           5.1|          3.7|           1.5|          0.4| setosa     |
-|           4.6|          3.6|           1.0|          0.2| setosa     |
-|           5.1|          3.3|           1.7|          0.5| setosa     |
-|           4.8|          3.4|           1.9|          0.2| setosa     |
-|           5.0|          3.0|           1.6|          0.2| setosa     |
-|           5.0|          3.4|           1.6|          0.4| setosa     |
-|           5.2|          3.5|           1.5|          0.2| setosa     |
-|           5.2|          3.4|           1.4|          0.2| setosa     |
-|           4.7|          3.2|           1.6|          0.2| setosa     |
-|           4.8|          3.1|           1.6|          0.2| setosa     |
-|           5.4|          3.4|           1.5|          0.4| setosa     |
-|           5.2|          4.1|           1.5|          0.1| setosa     |
-|           5.5|          4.2|           1.4|          0.2| setosa     |
-|           4.9|          3.1|           1.5|          0.2| setosa     |
-|           5.0|          3.2|           1.2|          0.2| setosa     |
-|           5.5|          3.5|           1.3|          0.2| setosa     |
-|           4.9|          3.6|           1.4|          0.1| setosa     |
-|           4.4|          3.0|           1.3|          0.2| setosa     |
-|           5.1|          3.4|           1.5|          0.2| setosa     |
-|           5.0|          3.5|           1.3|          0.3| setosa     |
-|           4.5|          2.3|           1.3|          0.3| setosa     |
-|           4.4|          3.2|           1.3|          0.2| setosa     |
-|           5.0|          3.5|           1.6|          0.6| setosa     |
-|           5.1|          3.8|           1.9|          0.4| setosa     |
-|           4.8|          3.0|           1.4|          0.3| setosa     |
-|           5.1|          3.8|           1.6|          0.2| setosa     |
-|           4.6|          3.2|           1.4|          0.2| setosa     |
-|           5.3|          3.7|           1.5|          0.2| setosa     |
-|           5.0|          3.3|           1.4|          0.2| setosa     |
-|           7.0|          3.2|           4.7|          1.4| versicolor |
-|           6.4|          3.2|           4.5|          1.5| versicolor |
-|           6.9|          3.1|           4.9|          1.5| versicolor |
-|           5.5|          2.3|           4.0|          1.3| versicolor |
-|           6.5|          2.8|           4.6|          1.5| versicolor |
-|           5.7|          2.8|           4.5|          1.3| versicolor |
-|           6.3|          3.3|           4.7|          1.6| versicolor |
-|           4.9|          2.4|           3.3|          1.0| versicolor |
-|           6.6|          2.9|           4.6|          1.3| versicolor |
-|           5.2|          2.7|           3.9|          1.4| versicolor |
-|           5.0|          2.0|           3.5|          1.0| versicolor |
-|           5.9|          3.0|           4.2|          1.5| versicolor |
-|           6.0|          2.2|           4.0|          1.0| versicolor |
-|           6.1|          2.9|           4.7|          1.4| versicolor |
-|           5.6|          2.9|           3.6|          1.3| versicolor |
-|           6.7|          3.1|           4.4|          1.4| versicolor |
-|           5.6|          3.0|           4.5|          1.5| versicolor |
-|           5.8|          2.7|           4.1|          1.0| versicolor |
-|           6.2|          2.2|           4.5|          1.5| versicolor |
-|           5.6|          2.5|           3.9|          1.1| versicolor |
-|           5.9|          3.2|           4.8|          1.8| versicolor |
-|           6.1|          2.8|           4.0|          1.3| versicolor |
-|           6.3|          2.5|           4.9|          1.5| versicolor |
-|           6.1|          2.8|           4.7|          1.2| versicolor |
-|           6.4|          2.9|           4.3|          1.3| versicolor |
-|           6.6|          3.0|           4.4|          1.4| versicolor |
-|           6.8|          2.8|           4.8|          1.4| versicolor |
-|           6.7|          3.0|           5.0|          1.7| versicolor |
-|           6.0|          2.9|           4.5|          1.5| versicolor |
-|           5.7|          2.6|           3.5|          1.0| versicolor |
-|           5.5|          2.4|           3.8|          1.1| versicolor |
-|           5.5|          2.4|           3.7|          1.0| versicolor |
-|           5.8|          2.7|           3.9|          1.2| versicolor |
-|           6.0|          2.7|           5.1|          1.6| versicolor |
-|           5.4|          3.0|           4.5|          1.5| versicolor |
-|           6.0|          3.4|           4.5|          1.6| versicolor |
-|           6.7|          3.1|           4.7|          1.5| versicolor |
-|           6.3|          2.3|           4.4|          1.3| versicolor |
-|           5.6|          3.0|           4.1|          1.3| versicolor |
-|           5.5|          2.5|           4.0|          1.3| versicolor |
-|           5.5|          2.6|           4.4|          1.2| versicolor |
-|           6.1|          3.0|           4.6|          1.4| versicolor |
-|           5.8|          2.6|           4.0|          1.2| versicolor |
-|           5.0|          2.3|           3.3|          1.0| versicolor |
-|           5.6|          2.7|           4.2|          1.3| versicolor |
-|           5.7|          3.0|           4.2|          1.2| versicolor |
-|           5.7|          2.9|           4.2|          1.3| versicolor |
-|           6.2|          2.9|           4.3|          1.3| versicolor |
-|           5.1|          2.5|           3.0|          1.1| versicolor |
-|           5.7|          2.8|           4.1|          1.3| versicolor |
-|           6.3|          3.3|           6.0|          2.5| virginica  |
-|           5.8|          2.7|           5.1|          1.9| virginica  |
-|           7.1|          3.0|           5.9|          2.1| virginica  |
-|           6.3|          2.9|           5.6|          1.8| virginica  |
-|           6.5|          3.0|           5.8|          2.2| virginica  |
-|           7.6|          3.0|           6.6|          2.1| virginica  |
-|           4.9|          2.5|           4.5|          1.7| virginica  |
-|           7.3|          2.9|           6.3|          1.8| virginica  |
-|           6.7|          2.5|           5.8|          1.8| virginica  |
-|           7.2|          3.6|           6.1|          2.5| virginica  |
-|           6.5|          3.2|           5.1|          2.0| virginica  |
-|           6.4|          2.7|           5.3|          1.9| virginica  |
-|           6.8|          3.0|           5.5|          2.1| virginica  |
-|           5.7|          2.5|           5.0|          2.0| virginica  |
-|           5.8|          2.8|           5.1|          2.4| virginica  |
-|           6.4|          3.2|           5.3|          2.3| virginica  |
-|           6.5|          3.0|           5.5|          1.8| virginica  |
-|           7.7|          3.8|           6.7|          2.2| virginica  |
-|           7.7|          2.6|           6.9|          2.3| virginica  |
-|           6.0|          2.2|           5.0|          1.5| virginica  |
-|           6.9|          3.2|           5.7|          2.3| virginica  |
-|           5.6|          2.8|           4.9|          2.0| virginica  |
-|           7.7|          2.8|           6.7|          2.0| virginica  |
-|           6.3|          2.7|           4.9|          1.8| virginica  |
-|           6.7|          3.3|           5.7|          2.1| virginica  |
-|           7.2|          3.2|           6.0|          1.8| virginica  |
-|           6.2|          2.8|           4.8|          1.8| virginica  |
-|           6.1|          3.0|           4.9|          1.8| virginica  |
-|           6.4|          2.8|           5.6|          2.1| virginica  |
-|           7.2|          3.0|           5.8|          1.6| virginica  |
-|           7.4|          2.8|           6.1|          1.9| virginica  |
-|           7.9|          3.8|           6.4|          2.0| virginica  |
-|           6.4|          2.8|           5.6|          2.2| virginica  |
-|           6.3|          2.8|           5.1|          1.5| virginica  |
-|           6.1|          2.6|           5.6|          1.4| virginica  |
-|           7.7|          3.0|           6.1|          2.3| virginica  |
-|           6.3|          3.4|           5.6|          2.4| virginica  |
-|           6.4|          3.1|           5.5|          1.8| virginica  |
-|           6.0|          3.0|           4.8|          1.8| virginica  |
-|           6.9|          3.1|           5.4|          2.1| virginica  |
-|           6.7|          3.1|           5.6|          2.4| virginica  |
-|           6.9|          3.1|           5.1|          2.3| virginica  |
-|           5.8|          2.7|           5.1|          1.9| virginica  |
-|           6.8|          3.2|           5.9|          2.3| virginica  |
-|           6.7|          3.3|           5.7|          2.5| virginica  |
-|           6.7|          3.0|           5.2|          2.3| virginica  |
-|           6.3|          2.5|           5.0|          1.9| virginica  |
-|           6.5|          3.0|           5.2|          2.0| virginica  |
-|           6.2|          3.4|           5.4|          2.3| virginica  |
-|           5.9|          3.0|           5.1|          1.8| virginica  |
+| Title                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Author       | PushNum |
+|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------|:--------|
+| \[情報\] NBA Standings(2017.03.31)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | kadasaki     | 81      |
+| \[情報\] Harden: 前往金州，努力爭取勝利                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | rabbit529    | 75      |
+| \[討論\] 東區老八卡位戰                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | nba407t      | 8       |
+| \[討論\] 騎士如果打不到總冠軍賽？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | lopopo001    | 18      |
+| \[閒聊\] Jimmy Butler的眼睛                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | dragon803    | 46      |
+| \[新聞\] 詹姆士準大三元也無用　騎士不敵公牛吞3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | LIN9         | 3       |
+| \[新聞\] 騎士3月吞10敗 詹姆斯：現在的處境很糟                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | adam7148     | 32      |
+| \[討論\] Kobe 是近10年來最愛高難度出手的主將嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | bingoking    | 34      |
+| \[討論\] 今年年度第一隊後衛怎麼選？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | cpks         | 77      |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | jack19931993 | 17      |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | yangsuper    |         |
+| \[專欄\] Rondo上演鬼手背傳！昔日頂級控衛再現絕                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | encorek01231 | 45      |
+| \[花邊\] 禪師不走尼克不會好？ 皮朋砲轟前教頭                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | adam7148     | 38      |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | gwaykuo      | 18      |
+| \[閒聊\] Westbrook關鍵時刻時的表現                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | dragon803    | 30      |
+| \[討論\] 組大團是不是不要太多人比較好？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | USD5566      |         |
+| \[情報\] Omer Asik 胃腸道感染 本季提前結束                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | thnlkj0665   | 16      |
+| \[討論\] 大家給Luke walton的第一年表現打幾分                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | waiting0212  | 55      |
+| \[外絮\] 騎士隊難眠的夜晚，LBJ生涯得分超越俠客                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | avrild12     | 21      |
+| \[討論\] 大家是不是都對lbj太苛刻了？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | n123033401   | 8       |
+| Re: \[討論\] Rubio今年FG%能跨越4成線嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | carotyao     | 38      |
+| Re: \[閒聊\] Westbrook關鍵時刻時的表現 (內有數據)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | hungys       | 10      |
+| \[新聞\] 力壓3大MVP熱門人選 柯瑞綻放光芒                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | lovea        | 67      |
+| \[討論\] 怎樣的球員場上表現最沒職業道德???                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | YummyBosh    | 3       |
+| Re: \[花邊\] 禪師不走尼克不會好？ 皮朋砲轟前教頭                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | dxc669       | 6       |
+| \[討論\] NBA有球員是林益全這種類型的嗎                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Sullinger    | 11      |
+| \[討論\] LBJ老了後會再度轉隊嗎                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | derrengay    |         |
+| (本文已被刪除) \[abc7360393\]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | -            |         |
+| \[新聞\] 首戰老東家國王 卡珍斯平常心面對                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Gotham       | 5       |
+| \[情報\] 防守籃板排行榜                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | checktime    |         |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | hotcore      | 11      |
+| Re: \[新聞\] NBA》傳奇中鋒排名 歐尼爾認為自己只排                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | backere0720  | X1      |
+| \[討論\] LBJ就像 Novak Djokovic 太強遭人黑而已                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | yangsuper    | X3      |
+| \[討論\] 和LBJ作對的下場是不是都很慘呀？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | ttww1991     | 4       |
+| (本文已被刪除) \[MrSatan\]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | -            | 9       |
+| \[討論\] 還有人記得Abdur-Rahim這個球員嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | abc12812     | 31      |
+| \[討論\] 有類似S.Curry崛起的MVP嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ininder      | 67      |
+| Re: \[情報\] 防守籃板排行榜                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | eddman       | 11      |
+| \[討論\] 勇士打拓荒會是一場血戰嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | gugipin      | 78      |
+| (本文已被刪除) \[MrSatan\]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | -            |         |
+| Re: \[情報\] 防守籃板排行榜                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | checktime    |         |
+| \[新聞\] NBA／憶起MJ經典一擊 馬里安：我可是拼了                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | iam168888888 | 29      |
+| \[情報\] ★今日排名(2017.03.31)★                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Rambo        | 4       |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | fjack        | X1      |
+| Re: \[討論\] LBJ就像 Novak Djokovic 太強遭人黑而已                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | KDimitrov313 |         |
+| Re: \[討論\] 勇士打拓荒會是一場血戰嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | rainfruit    | 2       |
+| \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Turtle100    | 12      |
+| \[討論\] TD跟KG的排名可以互換了嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | CYAward      | X3      |
+| Re: \[討論\] 勇士打拓荒會是一場血戰嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | NelsonCruz   | 16      |
+| \[討論\] 誰才是LBJ抱過最粗的腿?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | TrySoHard    | 49      |
+| \[專欄\] 騎士怎麼了?LYS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | zzyyxx77     | 32      |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | phantomboy   | 36      |
+| \[討論\] Curry是不是單季讓觀眾抱頭最多的Star?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | SongLa5566   | 2       |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | ALLENWAN     | 10      |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | leo755269    | 71      |
+| \[情報\] Race to the MVP Ladder                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Vedan1213    | 28      |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | fjack        | 2       |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | eric795      | 5       |
+| \[討論\] 老大的帶隊能力其實很強吧                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | BigCockman   | 71      |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | feiwens5566  | 4       |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | samusu       | 2       |
+| \[Live\] 溜馬 @ 暴龍                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        | 2       |
+| \[Live\] 金塊 @ 黃蜂                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        |         |
+| (本文已被刪除) \[MrSatan\]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | -            |         |
+| \[花邊\] O'Neal曾編造和上將不和故事激勵自己打更好                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | bigDwinsch   | 24      |
+| \[Live\] 七六人 @ 騎士                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Rambo        | 39      |
+| \[Live\] 魔術 @ 超賽                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        | 6       |
+| \[Live\] 馬刺 @ 雷霆                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        | 爆      |
+| \[情報\] Covington, Jahlil Okafor 本季提前報銷                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | thnlkj0665   | 24      |
+| \[Live\] 國王 vs. 鵜鶘                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | haroldf1     | 5       |
+| \[Live\] 巫師 @ 爵士                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        | 5       |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | wmigrant     | 2       |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | KobeinCloud  | 8       |
+| \[Live\] \[email<U+00A0>protected\]/\* &lt;\[CDATA\[ */!function(t,e,r,n,c,a,p){try{t=document.currentScript||function(){for(t=document.getElementsByTagName('script'),e=t.length;e--;)if(t\[e\].getAttribute('data-cfhash'))return t\[e\]}();if(t&&(c=t.previousSibling)){p=t.parentNode;if(a=c.getAttribute('data-cfemail')){for(e='',r='0x'+a.substr(0,2)|0,n=2;a.length-n;n+=2)e+='%'+('0'+('0x'+a.substr(n,2)^r).toString(16)).slice(-2);p.replaceChild(document.createTextNode(decodeURIComponent(e)),c)}p.removeChild(t)}}catch(u){}}()/* \]\]&gt; \*/ | YummyBosh    | 4       |
+| \[BOX \] Nuggets 114:122 Hornets 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Rambo        | 21      |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | BBDurant     | 19      |
+| \[BOX \] Pacers 100:111 Raptors 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        | 22      |
+| Fw: \[外電\] Nurkic腓骨骨折 將缺陣兩週後重新評估                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Ansel        | 57      |
+| \[BOX \] Sixers 105:122 Cavaliers 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Rambo        | 58      |
+| \[情報\] KD:媒體激化了我和RW的矛盾，本<U+6CA1>什麼事                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | ericl1234567 | 10      |
+| \[BOX \] Magic 116:117 Celtics 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Rambo        | 18      |
+| Re: \[新聞\] NBA／憶起MJ經典一擊 馬里安：我可是拼了                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | iphone15     |         |
+| \[Live\] 火箭 @ 勇士                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Rambo        | 爆      |
+| \[討論\]Westbrook大三元                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ZaneTrout    | 24      |
+| \[BOX \] Kings 89:117 Pelicans 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Rambo        | 35      |
+| \[新聞\] 盼魏少打破單季大三元紀錄 大O力挺奪MVP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | DantesChen   | 23      |
+| Re: \[討論\] TD跟KG的排名可以互換了嗎?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | backere0720  | X1      |
+| \[花邊\] Chandler Parsons 新約會對象曝光!?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Costco5566   | 92      |
+| \[BOX \] Mavericks 90:99 Grizzlies 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Rambo        | 19      |
+| \[BOX \] Knicks 98:94 Heat 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Rambo        | 49      |
+| \[討論\] 可愛是不是準備好接班了？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | tp943308     | X1      |
+| \[新聞\] 奈許挺輪休：我以前總是打得很累                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Gotham       | 28      |
+| \[BOX \] Spurs 100:95 Thunder 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Rambo        | 爆      |
+| \[討論\] 咖哩到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | OceanBoy     | X3      |
+| \[BOX \] Pistons 105:108 Bucks 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Rambo        | 52      |
+| \[BOX \] Wizards 88:95 Jazz 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Rambo        | 17      |
+| \[花邊\] 雷霆於2015年選秀時想選Booker                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | jay0601zzz   | 12      |
+| \[公告\] 請推文發言不要討論和針對球迷                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | namie810303  | 33      |
+| \[新聞\] 悔不當初！騎士當年差點選里歐納德                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | asdf1256     | X2      |
+| \[新聞\] 生涯得分超越俠客 大帝無喜色                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | james008     | 6       |
+| \[新聞\] 馬刺完成21分逆轉秀 魏少39次大三元白搭                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | jay0601zzz   | 19      |
+| \[討論\] 最會挖掘璞玉的隊伍是哪一隊？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | KyrieIrving1 | 61      |
+| \[討論\] 要解決輪休的問題可以從制度面著手                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | filmystery   | 7       |
+| Re: \[討論\] LBJ為何可以被貶到這麼低?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | olp123       | 24      |
+| \[情報\] 巫師牆哥:裁判讓我們輸掉了這場比賽                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | sezna        | 25      |
+| \[新聞\] 老弱熊兵沒再怕　照贏小牛進季後賽                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | HANASUCIA    | 13      |
+| \[新聞\] 「別把我當畜牲看！」 卡森斯打爆老東家                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | pttpepe      | 61      |
+| Re: \[討論\] 要解決輪休的問題可以從制度面著手                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | carotyao     | 15      |
+| \[花邊\] 詹皇苦惱球隊陷低潮　柯瑞爽過頭按讚被抓                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | adam7148     | 33      |
+| \[討論\] 有人也期待 KD 回來的勇士嗎                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | One102bird   | 47      |
+| Re: \[討論\] 勒布朗到底強在哪裡？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | subsonic     |         |
+| \[BOX \] Rockets 98:107 Warriors 數據                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | hungys       | 爆      |
+| \[情報\] ORPM 排行                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | checktime    | 38      |
+| \[情報\] 官方：Zubac右腳踝高位踝關節扭傷，賽季報銷                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Wall62       | 13      |
+| \[討論\] 勇士是最懂分工合作的球隊嗎？                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | star1739456  | 41      |
+| \[外絮\] ESPN推特秀本季MVP競爭者對戰成績                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | bigDwinsch   | 41      |
+| \[情報\] 字母哥：我告訴Maker你要是投籃猶豫我就揍你                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | bigDwinsch   | 25      |
+| \[花邊\] Durant談在雷霆：就像生活在一個泡泡裏                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Yui5         | 9       |
+| \[新聞\] 格林防守帶動反擊 勇士逆轉火箭10連勝                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | gt097231     | 7       |
+| \[討論\] Curry 了不起 !                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Turtle100    | X3      |
 
 解釋爬蟲結果
 ------------
 
 ``` r
-#這是R Code Chunk
+str(allframe)
 ```
 
-解釋解釋解釋解釋
+    ## 'data.frame':    120 obs. of  3 variables:
+    ##  $ Title  : Factor w/ 101 levels "[外絮] 騎士隊難眠的夜晚，LBJ生涯得分超越俠客",..: 12 11 7 9 14 16 17 3 6 18 ...
+    ##  $ Author : Factor w/ 83 levels "adam7148","avrild12",..: 9 14 13 11 5 10 1 3 4 8 ...
+    ##  $ PushNum: Factor w/ 55 levels "","16","17","18",..: 17 14 16 4 12 6 8 9 15 3 ...
 
 ``` r
-#這是R Code Chunk
+table(allframe$Author)
 ```
 
-解釋解釋解釋解釋
+    ## 
+    ##     adam7148     avrild12    bingoking         cpks    dragon803 
+    ##            3            1            1            1            2 
+    ## encorek01231      gwaykuo jack19931993     kadasaki         LIN9 
+    ##            1            1            1            1            1 
+    ##    lopopo001   n123033401      nba407t    rabbit529   thnlkj0665 
+    ##            1            1            1            1            2 
+    ##      USD5566  waiting0212    yangsuper            -     abc12812 
+    ##            1            1            2            4            1 
+    ##  backere0720     carotyao    checktime    derrengay       dxc669 
+    ##            2            2            3            1            1 
+    ##       eddman       Gotham      gugipin      hotcore       hungys 
+    ##            1            2            1            1            2 
+    ##      ininder        lovea    Sullinger     ttww1991    YummyBosh 
+    ##            1            1            1            1            2 
+    ##     ALLENWAN   BigCockman      CYAward      eric795  feiwens5566 
+    ##            1            1            1            1            1 
+    ##        fjack iam168888888 KDimitrov313    leo755269   NelsonCruz 
+    ##            2            1            1            1            1 
+    ##   phantomboy    rainfruit        Rambo   SongLa5566    TrySoHard 
+    ##            1            1           18            1            1 
+    ##    Turtle100    Vedan1213     zzyyxx77        Ansel     BBDurant 
+    ##            2            1            1            1            1 
+    ##   bigDwinsch ericl1234567     haroldf1  KobeinCloud       samusu 
+    ##            3            1            1            1            1 
+    ##     wmigrant     asdf1256   Costco5566   DantesChen     iphone15 
+    ##            1            1            1            1            1 
+    ##     james008   jay0601zzz  namie810303     OceanBoy     tp943308 
+    ##            1            2            1            1            1 
+    ##    ZaneTrout   filmystery     gt097231    HANASUCIA KyrieIrving1 
+    ##            1            1            1            1            1 
+    ##       olp123   One102bird      pttpepe        sezna  star1739456 
+    ##            1            1            1            1            1 
+    ##     subsonic       Wall62         Yui5 
+    ##            1            1            1
 
-人工結論與解釋解釋解釋解釋解釋解釋解釋
+共爬出120篇文章標題。 adam7148, checktime,bigDwinsch 文章數最多,每人各發表3篇文章。
+
+``` r
+table(allframe$Author)
+```
+
+    ## 
+    ##     adam7148     avrild12    bingoking         cpks    dragon803 
+    ##            3            1            1            1            2 
+    ## encorek01231      gwaykuo jack19931993     kadasaki         LIN9 
+    ##            1            1            1            1            1 
+    ##    lopopo001   n123033401      nba407t    rabbit529   thnlkj0665 
+    ##            1            1            1            1            2 
+    ##      USD5566  waiting0212    yangsuper            -     abc12812 
+    ##            1            1            2            4            1 
+    ##  backere0720     carotyao    checktime    derrengay       dxc669 
+    ##            2            2            3            1            1 
+    ##       eddman       Gotham      gugipin      hotcore       hungys 
+    ##            1            2            1            1            2 
+    ##      ininder        lovea    Sullinger     ttww1991    YummyBosh 
+    ##            1            1            1            1            2 
+    ##     ALLENWAN   BigCockman      CYAward      eric795  feiwens5566 
+    ##            1            1            1            1            1 
+    ##        fjack iam168888888 KDimitrov313    leo755269   NelsonCruz 
+    ##            2            1            1            1            1 
+    ##   phantomboy    rainfruit        Rambo   SongLa5566    TrySoHard 
+    ##            1            1           18            1            1 
+    ##    Turtle100    Vedan1213     zzyyxx77        Ansel     BBDurant 
+    ##            2            1            1            1            1 
+    ##   bigDwinsch ericl1234567     haroldf1  KobeinCloud       samusu 
+    ##            3            1            1            1            1 
+    ##     wmigrant     asdf1256   Costco5566   DantesChen     iphone15 
+    ##            1            1            1            1            1 
+    ##     james008   jay0601zzz  namie810303     OceanBoy     tp943308 
+    ##            1            2            1            1            1 
+    ##    ZaneTrout   filmystery     gt097231    HANASUCIA KyrieIrving1 
+    ##            1            1            1            1            1 
+    ##       olp123   One102bird      pttpepe        sezna  star1739456 
+    ##            1            1            1            1            1 
+    ##     subsonic       Wall62         Yui5 
+    ##            1            1            1
+
+``` r
+table(allframe$PushNum)
+```
+
+    ## 
+    ##    16 17 18 21  3 30 32 34 38 45 46 55 75 77  8 81 10 11 31  4  5  6 67 78 
+    ## 12  2  2  3  2  2  1  2  1  3  1  1  1  1  1  3  1  3  3  1  4  4  3  2  1 
+    ##  9 X1 X3 12  2 28 29 36 49 71 19 22 24 39 57 58 爆 23 33 35 52 92 X2 13 15 
+    ##  2  4  4  2  6  2  1  1  2  2  3  1  4  1  1  1  4  1  2  1  1  1  1  2  1 
+    ## 25 41 47 61  7 
+    ##  2  2  1  2  2
+
+Author為-表示文章已被刪除，共有4篇文章被刪除。 爬蟲資料中，推文數超過一定數值會顯示為"爆"。 推文數PushNum並不全為數字，有些文章的推文數為"爆"、"X1"、"X2"、"X3"。
